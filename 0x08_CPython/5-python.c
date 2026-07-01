@@ -1,7 +1,7 @@
 #include <stdio.h>
-#include <Python.h>
 #include <stdbool.h>
-#define ABS_VAL(x) ((x) < 0 ? -(x) : (x))
+#include <Python.h>
+#include <longobject.h>
 
 /**
  * print_python_int - Displays information about Python integer objects
@@ -11,35 +11,43 @@
  */
 void print_python_int(PyObject *p)
 {
-	Py_ssize_t i, size;
-	bool negative;
-	unsigned long base10 = 0, pow_base_pylong;
-	unsigned int base_pylong = 1 << PyLong_SHIFT;
+    PyVarObject *var = (PyVarObject *)p;
+    PyLongObject *long_obj = (PyLongObject *)p;
+    Py_ssize_t size;
+    bool negative = false;
+    unsigned long result = 0UL;
+    unsigned long base = 1UL << PyLong_SHIFT;
+    unsigned long digit;
 
-	if (!PyLong_Check(p))
-	{
-		puts("Invalid Int Object");
-		return;
-	}
+    if (!PyLong_Check(p))
+    {
+        puts("Invalid Int Object");
+        return;
+    }
 
-	size = ABS_VAL(((PyVarObject *)p)->ob_size);
-	negative = ((PyVarObject *)p)->ob_size < 0;
+    size = var->ob_size;
+    if (size < 0)
+    {
+        negative = true;
+        size = -size;
+    }
 
-	if (size < 3 || (size == 3 && ((PyLongObject *)p)->ob_digit[2] < 16))
-	{
-		pow_base_pylong = 1;
-		for (i = 0; i < size; i++)
-		{
-			base10 += pow_base_pylong * ((PyLongObject *)p)->ob_digit[i];
-			pow_base_pylong *= base_pylong;
-		}
+    for (Py_ssize_t i = 0; i < size; i++)
+    {
+        digit = (unsigned long)long_obj->ob_digit[i];
 
-		if (negative)
-			putchar('-');
-		printf("%lu\n", base10);
-	}
-	else
-	{
-		puts("C unsigned long int overflow");
-	}
+        if (result > ULONG_MAX / base ||
+            (result == ULONG_MAX / base && digit > ULONG_MAX % base))
+        {
+            puts("C unsigned long int overflow");
+            return;
+        }
+
+        result = result * base + digit;
+    }
+
+    if (negative)
+        printf("-%lu\n", result);
+    else
+        printf("%lu\n", result);
 }

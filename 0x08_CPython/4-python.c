@@ -1,6 +1,6 @@
-#include <python3.4/Python.h>
-#include <python3.4/object.h>
-#include <python3.4/unicodeobject.h>
+#include <Python.h>
+#include <unicodeobject.h>
+#include <stdio.h>
 
 /**
  * print_python_string - provides basic information about Python string objects
@@ -11,13 +11,14 @@
 void print_python_string(PyObject *p)
 {
     const char *type = NULL;
-    Py_ssize_t len = 0;
-    wchar_t *str = NULL;
+    Py_ssize_t length = 0;
+    const char *value = NULL;
 
     printf("[.] string object info\n");
     if (!PyUnicode_Check(p))
     {
         printf("  [ERROR] Invalid String Object\n");
+        fflush(stdout);
         return;
     }
 
@@ -25,14 +26,20 @@ void print_python_string(PyObject *p)
     {
         type = "compact ascii";
     }
-    else
+    else if (PyUnicode_IS_COMPACT(p))
     {
         type = "compact unicode object";
     }
+    else
+    {
+        type = "unicode object";
+    }
 
-    str = PyUnicode_AsWideCharString(p, &len);
+    length = PyUnicode_GET_LENGTH(p);
+    value = PyUnicode_AsUTF8AndSize(p, &length);
 
     printf("  type: %s\n", type);
-    printf("  length: %ld\n", len);
-    printf("  value: %ls\n", str);
+    printf("  length: %ld\n", PyUnicode_GET_LENGTH(p));
+    printf("  value: %s\n", value ? value : "");
+    fflush(stdout);
 }

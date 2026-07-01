@@ -1,7 +1,8 @@
-#include <python3.4/Python.h>
-#include <python3.4/listobject.h>
-#include <python3.4/object.h>
-#include <python3.4/bytesobject.h>
+#include <Python.h>
+#include <stdio.h>
+#include <listobject.h>
+#include <bytesobject.h>
+#include <object.h>
 
 /**
  * print_python_bytes - provides basic information about Python bytes objects
@@ -33,6 +34,7 @@ void print_python_bytes(PyObject *p)
     {
         printf("  [ERROR] Invalid Bytes Object\n");
     }
+    fflush(stdout);
 }
 
 /**
@@ -44,12 +46,13 @@ void print_python_bytes(PyObject *p)
 void print_python_list(PyObject *p)
 {
     PyListObject *list = (PyListObject *)p;
+    Py_ssize_t i;
 
     printf("[*] Python list info\n");
     printf("[*] Size of the Python List = %ld\n", list->ob_base.ob_size);
     printf("[*] Allocated = %ld\n", list->allocated);
 
-    for (Py_ssize_t i = 0; i < list->ob_base.ob_size; i++)
+    for (i = 0; i < list->ob_base.ob_size; i++)
     {
         printf("Element %ld: %s\n", i, list->ob_item[i]->ob_type->tp_name);
 
